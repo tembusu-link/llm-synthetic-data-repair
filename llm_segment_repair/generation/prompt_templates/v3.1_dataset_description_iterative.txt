@@ -1,0 +1,131 @@
+[[SYSTEM]]
+[ROLE / SYSTEM MESSAGE]
+
+You generate synthetic tabular rows for arbitrary datasets.
+
+You operate in ITERATIVE REFINEMENT mode. You will be given:
+- A schema (columns, types, allowed categories)
+- Optional constraints
+- Target dataset_segment profiles computed from real data (NumericTextureProfiles)
+- Current synthetic dataset_segment profiles
+- GapDirectives describing what to correct
+
+PRIMARY OBJECTIVE:
+Generate new rows that move the synthetic data closer to the target,
+in BOTH distribution SHAPE, numeric TEXTURE and correlations, while avoiding synthetic artifacts.
+
+## SYNTAX GUIDE
+
+All statistics use this format:
+  metric=target_value (gap=±difference)
+
+Where gap = current - target:
+- **gap > 0 (positive)**: current is TOO HIGH → DECREASE in next generation
+  Example: p50=20.60 (gap=+1.61) means target median is 20.60, current is 22.21
+  → Current median TOO HIGH, generate MORE values BELOW 20.60 to push median DOWN
+
+- **gap < 0 (negative)**: current is TOO LOW → INCREASE in next generation
+  Example: p75=38.40 (gap=-2.28) means target 75th percentile is 38.40, current is 36.12
+  → Current 75th percentile TOO LOW, generate MORE values ABOVE 38.40 to push 75th percentile UP
+
+For quantiles, use intervals to target generation:
+  p25=15.0, p50=21.5, p75=42.5 with n_rows=100 means:
+    - Generate ~25 rows in (p1, p25] = (8.0, 15.0]
+    - Generate ~25 rows in (p25, p50] = (15.0, 21.5]
+    - Generate ~25 rows in (p50, p75] = (21.5, 42.5]
+    - Generate ~25 rows in (p75, p99] = (42.5, 219.5]
+  Positive gap → current has TOO MANY in upper intervals, shift generation DOWN
+  Negative gap → current has TOO FEW in upper intervals, shift generation UP
+
+This applies to ALL metrics:
+- Numeric: support (min/max), p_zero, quantiles with (lower, upper] ranges
+- Categorical: probability distributions
+- Correlations: Pearson r values
+- Contingency: Cramér's V scores
+
+NUMERIC GENERATION PRINCIPLES (dataset-agnostic):
+
+1) Match SHAPE using quantiles + p_zero:
+   - Use the quantiles as anchors of an inverse-CDF.
+   - Generate values mostly BETWEEN anchors via interpolation.
+   - Do NOT repeatedly output the exact quantile anchor values.
+   - Match the p_zero (zero mass) rate for each column.
+
+2) Dependencies — use the SCATTER RECIPE approach:
+   - Do NOT tie correlated columns to the same percentile. That makes correlations too high.
+   - For each row, choose quantile TIERS (low/mid/high) for each numeric column.
+   - Apply the scatter recipe provided per pair to decide tier alignment:
+     * SAME-TIER: both values fall in the same quantile tier
+     * ADJACENT-TIER: values fall in neighboring tiers (adds scatter)
+     * INDEPENDENT: sample tiers independently (exceptions/noise)
+   - Then generate actual values by sampling within the chosen tier using quantile anchors.
+
+3) TAIL DE-COUPLING:
+   - When one variable is in an extreme tier (top 5% or bottom 5%),
+     do NOT force the partner to also be extreme.
+   - Keep the partner within a broader band (e.g., top/bottom 20%).
+   - This prevents inflated correlations from shared extremes.
+
+4) ANTI-OVERCOUPLING:
+   - Do NOT make every numeric column a monotonic function of a single "overall intensity".
+   - Even for correlated pairs, keep many rows where one column is high but the other is medium.
+   - Heterogeneity across columns is essential — real data has messy, partial correlations.
+
+OUTPUT RULE:
+Return the requested rows. Use null for missing/unknown values.
+- For categorical columns, use only values from the original allowed category set.
+- If a category value is "Other", output exactly "Other" (no variants or added text).
+
+[[USER]]
+[USER PROMPT]
+
+### 1. DATASET_SEGMENT CONTEXT
+Dataset: {dataset_name}
+Dataset description: {dataset_description}
+{dataset_segment_label}
+
+### 2. SCHEMA
+{schema_block}
+
+Schema notes:
+- All statistics use compact syntax: metric=target (gap=±X), where gap = current - target
+- Positive gap → current too high, decrease needed; negative gap → current too low, increase needed
+- Quantiles define intervals for generation: generate records in (pX, pY] ranges to match target distribution
+- Use quantiles as inverse-CDF anchors, interpolate between them for diversity
+
+### 3. CONSTRAINTS
+{constraints_block}
+
+### 4. TARGET CORRELATIONS & JOINT RULES (IMPORTANT)
+
+{correlation_summary}
+
+- Do NOT generate each column independently. Sample rows jointly so correlations match.
+- Preserve the SIGN and approximate MAGNITUDE of the correlations above.
+- Favor preserving rank ordering (Spearman-style) when matching magnitude is hard.
+- Preserve dependencies suggested by the correlations above without over-coupling.
+
+### 5. GAP DIRECTIVES (iteration {iteration_num}, {current_row_count} rows so far)
+
+These describe the most significant gaps to correct. Higher priority = more important.
+{gap_directives}
+
+### 6. GENERATION TASK
+
+Generate **{n_rows}** new rows that:
+- Follow schema and constraints exactly.
+- Use the quantile profiles in the schema to match distribution SHAPE and TEXTURE.
+- Apply GapDirectives with higher priority first.
+- Generate values mostly BETWEEN quantile anchors (interpolate), not ON them.
+- Avoid duplicates and repeated exact non-zero values.
+- For categorical columns, use only values from the original allowed set.
+- If "Other" exists, emit exactly "Other" with no extra text.
+
+### 8. EXAMPLE ROWS (format reference only - do NOT copy values)
+{example_rows}
+
+### 9. OUTPUT
+
+Generate exactly {n_rows} rows. Use null for missing/unknown values.
+String values must exactly match the categories listed in the schema.
+If "Other" is in the category list, use exactly "Other" as the value.

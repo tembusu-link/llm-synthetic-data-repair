@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling>=1.14,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "llm-segment-repair"
+version = "0.1.0"
+description = "Paper companion for LLM repair of segment-level synthetic tabular data."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "python-dotenv",
+    "pydantic>=2,<3",
+    "langchain-core>=1.2.14",
+    "langchain-openai>=1.1.10",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "sdmetrics==0.26.0",
+    "scipy",
+]
+authors = [{ name = "smugraph" }]
+
+[project.optional-dependencies]
+lint = [
+    "pre-commit",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["llm_segment_repair"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E402", "E501", "F841", "UP047"]

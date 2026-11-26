@@ -1,0 +1,42 @@
+{
+  "columns": {
+    "age_group": {
+      "sdtype": "categorical"
+    },
+    "workclass": {
+      "sdtype": "categorical"
+    },
+    "education": {
+      "sdtype": "categorical"
+    },
+    "marital_status": {
+      "sdtype": "categorical"
+    },
+    "occupation": {
+      "sdtype": "categorical"
+    },
+    "relationship": {
+      "sdtype": "categorical"
+    },
+    "race": {
+      "sdtype": "categorical"
+    },
+    "sex": {
+      "sdtype": "categorical"
+    },
+    "native_country": {
+      "sdtype": "categorical"
+    },
+    "income": {
+      "sdtype": "categorical"
+    },
+    "capital_gain": {
+      "sdtype": "numerical"
+    },
+    "capital_loss": {
+      "sdtype": "numerical"
+    }
+  },
+  "METADATA_SPEC_VERSION": "SINGLE_TABLE_V1",
+  "dataset_description": "Census-style individual income classification records with demographic and employment attributes. either capital_gain is a dominate number or captial_loss, not both "
+}

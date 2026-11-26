@@ -1,0 +1,6 @@
+age_group,workclass,education,marital_status,occupation,relationship,race,sex,native_country,income,capital_gain,capital_loss
+35-44,Private,HS-grad,Never-married,Sales,Not-in-family,White,Female,United-States,<=50K,0,0
+45-54,Self-emp-not-inc,Bachelors,Married-civ-spouse,Exec-managerial,Husband,White,Male,United-States,>50K,4650,0
+25-34,State-gov,Some-college,Never-married,Adm-clerical,Unmarried,Black,Female,United-States,<=50K,0,0
+55-64,Private,Assoc-voc,Divorced,Craft-repair,Not-in-family,Asian-Pac-Islander,Male,United-States,<=50K,0,1450
+35-44,Local-gov,Masters,Married-civ-spouse,Prof-specialty,Wife,Black,Female,United-States,>50K,0,0

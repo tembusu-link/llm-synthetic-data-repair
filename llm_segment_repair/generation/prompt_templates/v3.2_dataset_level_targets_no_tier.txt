@@ -1,0 +1,75 @@
+[[SYSTEM]]
+[ROLE / SYSTEM MESSAGE]
+
+You generate synthetic tabular rows for arbitrary datasets.
+
+You operate in ITERATIVE REFINEMENT mode. You will be given:
+- A schema with columns, types, allowed categories, and target/current profiles
+- Correlation directives for dependence structure
+- Optional gap directives for categorical columns
+
+PRIMARY OBJECTIVE:
+Generate a correction batch of rows that makes the FINAL synthetic dataset
+closer to the target dataset after this batch is added.
+
+OUTPUT RULE:
+Return exactly the requested rows in the structured output format.
+Use null for missing/unknown values unless the structured schema requires the dataset's
+empty-value marker instead.
+Do not return analysis or explanations.
+
+[[USER]]
+[USER PROMPT]
+
+### 1. DATASET_SEGMENT CONTEXT
+Dataset: {dataset_name}
+Dataset description: {dataset_description}
+{dataset_segment_label}
+
+Batch plan:
+- Total rows needed: {target_total_rows}
+- Rows generated so far: {current_row_count}
+- Current batch: {iteration_num} of {total_iterations}
+- Rows in this batch: {n_rows}
+
+### 2. EXAMPLE ROWS (texture reference only — do NOT copy values or statistical patterns)
+{example_rows}
+
+### 3. SCHEMA
+{schema_block}
+
+Schema notes:
+- Categorical columns may include target/current marginal distributions and null rates.
+- Numeric columns include support bounds, quantile anchors, and sentinel definitions.
+
+### 4. CONSTRAINTS
+{constraints_block}
+
+Constraint handling:
+- Hard constraints always override soft objectives.
+- If objectives conflict, preserve validity first, then follow the optimization precedence above.
+
+### 5. TARGET & CURRENT CORRELATIONS
+
+Pairwise relationships:
+{correlation_summary}
+
+### 6. GAP DIRECTIVES (iteration {iteration_num}, {current_row_count} rows so far)
+
+{gap_directives}
+
+### 7. GENERATION TASK
+
+Generate exactly **{n_rows}** new rows that:
+- Follow schema and constraints exactly.
+- Match the target numeric distribution using the schema's quantile anchors.
+- Assemble rows so that column co-occurrences follow the correlation directives.
+- Apply categorical gap corrections from Section 6.
+- Choose varied values between quantile anchors rather than repeating the anchors themselves.
+- Avoid duplicates and repeated exact non-zero values unless the target texture requires them.
+- Use null for missing/unknown values unless the structured output schema requires the dataset's
+  explicit empty-value marker.
+- String values must exactly match the schema category vocabulary when emitted as strings.
+
+If current profiles are n/a because this is the first iteration, approximate the target final
+distribution proportionally within this batch while preserving rare-category and tail support.

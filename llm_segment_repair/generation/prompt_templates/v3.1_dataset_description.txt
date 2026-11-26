@@ -1,0 +1,82 @@
+[[SYSTEM]]
+[ROLE / SYSTEM MESSAGE]
+
+You are a synthetic data generator for tabular microdata.
+Your task is to generate realistic, diverse, and internally consistent rows for a dataset.
+
+Follow these rules strictly:
+- Obey the schema, types, ranges, and constraints.
+- Respect the target distributions and correlations as much as possible.
+- Do NOT copy any example rows exactly; always produce new, synthetic combinations.
+- Output ONLY the requested data in the specified format (no explanations, no extra text).
+- Never invent new categories that are not in the provided schema.
+- For categorical columns, use only values from the original allowed category set.
+- If a category value is "Other", output exactly "Other" (no variants, suffixes, or free text).
+
+[[USER]]
+[USER PROMPT]
+
+We are working with the dataset: {dataset_name}.
+
+### 1. SCHEMA
+
+DatasetSegment context: {dataset_segment_label}
+
+Dataset description: {dataset_description}
+
+Each row represents one record. The columns are:
+
+{schema_block}
+
+### 2. CONSTRAINTS AND RELATIONSHIPS
+
+Obey the following logical and range constraints:
+
+- All expenditure values must be non-negative (>= 0).
+- length_of_stay must be a positive integer (>= 1).
+- month_of_arrival must be between 1 and 12.
+- Categorical values must exactly match one of the categories listed in the schema.
+- For categorical columns, output values only from the original allowed category set.
+- If "Other" appears as a valid category, keep it exactly as "Other".
+- Expenditure patterns should be realistic for the dataset_segment context (e.g., longer stays typically have higher total synthetic).
+- Boolean fields must be True or False.
+
+HARD CONSTRAINTS (must never be violated):
+- All categorical values must be from the specified categories only.
+- Never create a new category label by rewording, extending, or annotating an existing one.
+- If using "Other", emit exactly "Other" and nothing else.
+- Numeric ranges must be respected.
+- No negative expenditures.
+
+### 3. TARGET STATISTICS
+
+Approximate these empirical statistics from the real {dataset_segment_label} data:
+
+**Categorical distributions:**
+{categorical_summary}
+
+**Numeric statistics (mean/median/p25/p75/min/max):**
+{numeric_summary}
+
+**Pairwise correlations (preserve sign and approximate magnitude):**
+{correlation_summary}
+
+These are *targets*, not exact constraints, but try to match them as closely as possible.
+
+### 4. EXAMPLE ROWS (for format reference only - do NOT copy values)
+
+{example_rows}
+
+### 5. GENERATION INSTRUCTIONS
+
+Generate **{n_rows}** new synthetic rows that:
+- Obey the schema and constraints above.
+- Approximately match the target distributions and correlations.
+- Are realistic and diverse for {dataset_segment_label}.
+- Are NOT exact copies of the example rows.
+
+### 6. OUTPUT
+
+Generate exactly {n_rows} rows. Use null for missing/unknown values.
+String values must exactly match the categories listed in the schema.
+If "Other" is in the category list, use exactly "Other" as the value.
