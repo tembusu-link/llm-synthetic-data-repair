@@ -114,8 +114,3 @@ The real CSV adapts the Adult training data by Barry Becker and Ronny Kohavi
 (1996). We binned ages, filtered small segments and incomplete rows, and sampled
 120 rows with seed 42. [UCI Adult dataset](https://doi.org/10.24432/C5XW20) ·
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-
-## Publication
-
-Publish this companion in a new repository with fresh Git history after adding
-the project owner's approved license and any required notices.
